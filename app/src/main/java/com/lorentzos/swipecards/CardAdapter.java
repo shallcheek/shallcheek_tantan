@@ -58,6 +58,7 @@ public class CardAdapter extends BaseAdapter {
         }
         Glide.with(mContext)
                 .load(mCardList.get(position).getImages().get(0))
+
                 .into(holder.mCardImageView);
         holder.mCardName.setText(mCardList.get(position).getName());
         holder.mCardYear.setText(String.valueOf(mCardList.get(position).getYear()));
@@ -65,7 +66,6 @@ public class CardAdapter extends BaseAdapter {
     }
 
     class ViewHolder {
-        TextView mCardTitle;
         TextView mCardName;
         TextView mCardYear;
         TextView mCardImageNum;
