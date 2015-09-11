@@ -14,11 +14,12 @@
         android:background="@drawable/material_card"
         android:orientation="vertical">
 
-        <ImageView
+        <com.lorentzos.swipecards.RotateTextImageView
             android:id="@+id/helloText"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:layout_marginBottom="50dp"
+            android:padding="1dp"
             android:gravity="center"
             android:scaleType="centerCrop"
             android:src="@drawable/card_bg"
