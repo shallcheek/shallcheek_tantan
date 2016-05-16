@@ -2,7 +2,7 @@
 网上看到了一个动态切换的开源库，便拿来修改模仿出主界面
 开源库卡片切换: https://github.com/Diolor/Swipecards 和开源图片浏览工具添加
 
-```
+```java
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -22,7 +22,7 @@ ps:毕竟只模仿大概的东西
 
 ##监听函数
 
-```
+```java
        flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
       //设置适配器
         flingContainer.setAdapter(adapter);
