@@ -15,11 +15,9 @@ dependencies {
 
 ##看看效果对比 
 ####探探的效果
-![这里写图片描述](http://img.blog.csdn.net/20150623144428229)
+<img src="http://img.blog.csdn.net/20150623144428229" width="40%"><img>
 ####模仿的效果
-最新的模板
-<img src="./img/device-2016-06-08-145242.jpg" width="40%"><img>
-
+<img src="./img/device-2016-06-08-145242.jpg" width="50%"><img>
 ps:毕竟只模仿大概的界面可能也有BUG没好好测试!
 
 ##Example
