@@ -18,7 +18,6 @@ dependencies {
 <img src="http://img.blog.csdn.net/20150623144428229" width="40%"><img>
 ####模仿的效果
 <img src="./img/device-2016-06-08-145242.jpg" width="40%"><img>
-ps:毕竟只模仿大概的界面可能也有BUG没好好测试!
 
 ##Example
 
