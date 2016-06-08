@@ -9,8 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.target.ImageViewTarget;
 import com.example.shall.tantandemo.R;
 
 import java.util.List;
@@ -50,7 +48,7 @@ public class CardAdapter extends BaseAdapter {
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.item, parent, false);
             holder = new ViewHolder();
-            holder.mCardImageView = (RotateTextImageView) convertView.findViewById(R.id.helloText);
+            holder.mCardImageView = (ImageView) convertView.findViewById(R.id.helloText);
             holder.mCardName = (TextView) convertView.findViewById(R.id.card_name);
             holder.mCardImageNum = (TextView) convertView.findViewById(R.id.card_image_num);
             holder.mCardYear = (TextView) convertView.findViewById(R.id.card_year);
@@ -70,6 +68,6 @@ public class CardAdapter extends BaseAdapter {
         TextView mCardName;
         TextView mCardYear;
         TextView mCardImageNum;
-        RotateTextImageView mCardImageView;
+        ImageView mCardImageView;
     }
 }

@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
+import android.graphics.PointF;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -23,7 +24,7 @@ import com.example.shall.tantandemo.R;
 public class SwipeFlingAdapterView extends BaseFlingAdapterView {
 
 
-    private int MAX_VISIBLE = 4;
+    private int MAX_VISIBLE = 3;
     private int MIN_ADAPTER_STACK = 6;
     private float ROTATION_DEGREES = 15.f;
 
@@ -35,7 +36,9 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
     private View mActiveCard = null;
     private OnItemClickListener mOnItemClickListener;
     private FlingCardListener flingCardListener;
+    private PointF mLastTouchPoint;
 
+    private float p = 0f;
 
     public SwipeFlingAdapterView(Context context) {
         this(context, null);
@@ -103,27 +106,36 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
         } else {
             View topCard = getChildAt(LAST_OBJECT_IN_STACK);
             if (mActiveCard != null && topCard != null && topCard == mActiveCard) {
-                removeViewsInLayout(0, LAST_OBJECT_IN_STACK);
-                layoutChildren(1, adapterCount);
+                if (this.flingCardListener.isTouching()) {
+
+                    PointF lastPoint = this.flingCardListener.getLastPoint();
+                    if (this.mLastTouchPoint == null || !this.mLastTouchPoint.equals(lastPoint)) {
+                        this.mLastTouchPoint = lastPoint;
+                        removeViewsInLayout(0, LAST_OBJECT_IN_STACK);
+                        layoutChildren(1, adapterCount, 3);
+                    }
+                }
             } else {
                 // Reset the UI and set top view listener
                 removeAllViewsInLayout();
-                layoutChildren(0, adapterCount);
+                layoutChildren(0, adapterCount, 3);
                 setTopView();
             }
         }
 
         mInLayout = false;
 
-        if (adapterCount < MAX_VISIBLE) mFlingListener.onAdapterAboutToEmpty(adapterCount);
+        if (adapterCount <= MIN_ADAPTER_STACK) mFlingListener.onAdapterAboutToEmpty(adapterCount);
     }
 
 
-    private void layoutChildren(int startingIndex, int adapterCount) {
-        while (startingIndex < Math.min(adapterCount, MAX_VISIBLE)) {
+    private void layoutChildren(int startingIndex, int adapterCount, int count) {
+
+
+        while (startingIndex < Math.min(adapterCount, 4)) {
             View newUnderChild = mAdapter.getView(startingIndex, null, this);
             if (newUnderChild.getVisibility() != GONE) {
-                makeAndAddView(newUnderChild);
+                makeAndAddView(startingIndex, newUnderChild);
                 LAST_OBJECT_IN_STACK = startingIndex;
             }
             startingIndex++;
@@ -131,20 +143,32 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
     }
 
 
+    /**
+     * 绘制子View
+     *
+     * @param startingIndex
+     * @param child
+     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private void makeAndAddView(View child) {
+    private void makeAndAddView(int startingIndex, View child) {
 
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) child.getLayoutParams();
         addViewInLayout(child, 0, lp, true);
 
         final boolean needToMeasure = child.isLayoutRequested();
-        if (needToMeasure && lp != null) {
-            int childWidthSpec = getChildMeasureSpec(getWidthMeasureSpec(),
-                    getPaddingLeft() + getPaddingRight() + lp.leftMargin + lp.rightMargin,
-                    lp.width);
-            int childHeightSpec = getChildMeasureSpec(getHeightMeasureSpec(),
-                    getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin,
-                    lp.height);
+        if (needToMeasure) {
+            //计算 View 的长度宽度
+            int childWidthSpec = getChildMeasureSpec(getWidthMeasureSpec(), getPaddingLeft() + getPaddingRight() + lp.leftMargin + lp.rightMargin, lp.width);
+            int childHeightSpec = getChildMeasureSpec(getHeightMeasureSpec(), getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin, lp.height);
+            if (startingIndex > 0) {
+
+                int w = (int) (((float) startingIndex - p) * 60f);
+                int h = (int) (((float) startingIndex - p) * 30f);
+                childWidthSpec = ((childWidthSpec - w));
+                if (startingIndex < 3 || (startingIndex == 3 && p > 0.5f)) {
+                    childHeightSpec = ((childHeightSpec + h));
+                }
+            }
             child.measure(childWidthSpec, childHeightSpec);
         } else {
             cleanupLayoutState(child);
@@ -154,11 +178,7 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
         int w = child.getMeasuredWidth();
         int h = child.getMeasuredHeight();
 
-        int gravity = -1;
-
-        if (lp != null) {
-            gravity = lp.gravity;
-        }
+        int gravity = lp.gravity;
         if (gravity == -1) {
             gravity = Gravity.TOP | Gravity.START;
         }
@@ -172,15 +192,17 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
         int childTop;
         switch (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
             case Gravity.CENTER_HORIZONTAL:
-                childLeft = (getWidth() + getPaddingLeft() - getPaddingRight() - w) / 2 +
-                        lp.leftMargin - lp.rightMargin;
+                childLeft = (getWidth() + getPaddingLeft() - getPaddingRight() - w) / 2 + lp.leftMargin - lp.rightMargin;
                 break;
             case Gravity.END:
                 childLeft = getWidth() + getPaddingRight() - w - lp.rightMargin;
                 break;
             case Gravity.START:
             default:
-                childLeft = getPaddingLeft() + lp.leftMargin;
+                int l = (int) (((float) startingIndex - p) * 30f);
+                if (startingIndex == 0)
+                    l = 0;
+                childLeft = getPaddingLeft() + lp.leftMargin + l;
                 break;
         }
         switch (verticalGravity) {
@@ -216,11 +238,13 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
                     @Override
                     public void onCardExited() {
                         mActiveCard = null;
+                        p = 0f;
                         mFlingListener.removeFirstObjectInAdapter();
                     }
 
                     @Override
                     public void leftExit(Object dataObject) {
+                        p = 0f;
                         mFlingListener.onLeftCardExit(dataObject);
                     }
 
@@ -239,6 +263,25 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
                     @Override
                     public void onScroll(float scrollProgressPercent) {
                         mFlingListener.onScroll(scrollProgressPercent);
+
+                    }
+
+                    @Override
+                    public void onMoveXY(float moveX, float moveY) {
+                        float mX = (int) Math.abs(moveX);
+                        float mY = (int) Math.abs(moveY);
+                        if (mX > 50 || mY > 50) {
+                            float m = Math.max(mX, mY);
+                            p = (m - 50f) / 500f;
+                            if (p > 1f) {
+                                p = 1f;
+                            }
+                        } else {
+                            p = 0f;
+                        }
+                        requestLayout();
+
+
                     }
                 });
 
@@ -313,19 +356,21 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
 
 
     public interface OnItemClickListener {
-        public void onItemClicked(int itemPosition, Object dataObject);
+        void onItemClicked(int itemPosition, Object dataObject);
     }
 
     public interface onFlingListener {
-        public void removeFirstObjectInAdapter();
+        void removeFirstObjectInAdapter();
 
-        public void onLeftCardExit(Object dataObject);
+        void onLeftCardExit(Object dataObject);
 
-        public void onRightCardExit(Object dataObject);
+        void onRightCardExit(Object dataObject);
 
-        public void onAdapterAboutToEmpty(int itemsInAdapter);
+        void onAdapterAboutToEmpty(int itemsInAdapter);
 
-        public void onScroll(float scrollProgressPercent);
+        void onScroll(float scrollProgressPercent);
+
+
     }
 
 

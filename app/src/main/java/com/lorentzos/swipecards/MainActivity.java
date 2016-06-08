@@ -2,12 +2,9 @@ package com.lorentzos.swipecards;
 
 import android.app.Activity;
 import android.content.Context;
-import android.media.Image;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -68,7 +65,6 @@ public class MainActivity extends Activity {
         al.add(new CardMode("测试11", 21, list.get(13)));
         al.add(new CardMode("测试12", 21, list.get(14)));
 
-        ArrayAdapter arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         adapter = new CardAdapter(this, al);
         flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);
         flingContainer.setAdapter(adapter);
