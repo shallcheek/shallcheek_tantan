@@ -165,7 +165,7 @@ public class FlingCardListener implements View.OnTouchListener {
                 frame.setX(aPosX);
                 frame.setY(aPosY);
 //                frame.setRotation(rotation);
-                mFlingListener.onMoveXY(aPosX,aPosY);
+                mFlingListener.onMoveXY(aPosX, aPosY);
                 mFlingListener.onScroll(getScrollProgressPercent());
                 break;
 
@@ -195,23 +195,39 @@ public class FlingCardListener implements View.OnTouchListener {
             // Left Swipe
             onSelected(true, getExitPoint(-objectW), 100);
             mFlingListener.onScroll(-1.0f);
-            mFlingListener.onMoveXY(0,0);
+            mFlingListener.onMoveXY(0, 0);
         } else if (movedBeyondRightBorder()) {
             // Right Swipe
             onSelected(false, getExitPoint(parentWidth), 100);
             mFlingListener.onScroll(1.0f);
-            mFlingListener.onMoveXY(0,0);
+            mFlingListener.onMoveXY(0, 0);
         } else {
-            mFlingListener.onMoveXY(0,0);
+            mFlingListener.onMoveXY(0, 0);
             float abslMoveDistance = Math.abs(aPosX - objectX);
             //距离不够回到起点
             aPosX = 0;
             aPosY = 0;
             aDownTouchX = 0;
             aDownTouchY = 0;
+            Log.e("v",frame.getX()+"");
             frame.animate()
                     .setDuration(200)
                     .setInterpolator(new OvershootInterpolator(1.5f))
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+                            super.onAnimationRepeat(animation);
+                            Log.e("v",frame.getX()+"");
+                            Log.e("v",frame.getX()+"");
+                            Log.e("v",frame.getX()+"");
+                        }
+
+                        @Override
+                        public void onAnimationPause(Animator animation) {
+                            super.onAnimationPause(animation);
+                            Log.e("v",frame.getX()+"");
+                        }
+                    })
                     .x(objectX)
                     .y(objectY)
                     .rotation(0);
@@ -351,6 +367,7 @@ public class FlingCardListener implements View.OnTouchListener {
         void onClick(Object dataObject);
 
         void onScroll(float scrollProgressPercent);
+
         void onMoveXY(float moveX, float moveY);
     }
 

@@ -7,6 +7,7 @@ import android.database.DataSetObserver;
 import android.graphics.PointF;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Adapter;
@@ -24,9 +25,11 @@ import com.example.shall.tantandemo.R;
 public class SwipeFlingAdapterView extends BaseFlingAdapterView {
 
 
-    private int MAX_VISIBLE = 3;
+    private int MAX_VISIBLE = 4;
     private int MIN_ADAPTER_STACK = 6;
     private float ROTATION_DEGREES = 15.f;
+    private float ITEM_SMALL_WIDTH = 20;
+    private float ITEM_SMALL_HIGH = 32;
 
     private Adapter mAdapter;
     private int LAST_OBJECT_IN_STACK = 0;
@@ -58,6 +61,9 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
         a.recycle();
     }
 
+    private float dpToPx(int sp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, sp, getContext().getResources().getDisplayMetrics());
+    }
 
     /**
      * A shortcut method to set both the listeners and the adapter.
@@ -107,7 +113,6 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
             View topCard = getChildAt(LAST_OBJECT_IN_STACK);
             if (mActiveCard != null && topCard != null && topCard == mActiveCard) {
                 if (this.flingCardListener.isTouching()) {
-
                     PointF lastPoint = this.flingCardListener.getLastPoint();
                     if (this.mLastTouchPoint == null || !this.mLastTouchPoint.equals(lastPoint)) {
                         this.mLastTouchPoint = lastPoint;
@@ -131,7 +136,6 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
 
     private void layoutChildren(int startingIndex, int adapterCount, int count) {
 
-
         while (startingIndex < Math.min(adapterCount, 4)) {
             View newUnderChild = mAdapter.getView(startingIndex, null, this);
             if (newUnderChild.getVisibility() != GONE) {
@@ -142,33 +146,42 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
         }
     }
 
+    /**
+     * 跳转改变view 大小
+     *
+     * @param child
+     * @param index
+     */
+    private void adjustChildView(View child, int index) {
+        int n;
+        if (index > 1)
+            n = 2;
+        else
+            n = index;
+        if (index == 3 && p > 0.5f) {
+            n = index;
+        }
+        child.offsetTopAndBottom((int) (dpToPx((int) ITEM_SMALL_HIGH) * (n - p)));
+        child.setScaleX(1 - 0.1f * (n - p));
+        child.setScaleY(1 - 0.1f * (n - p));
+    }
 
     /**
      * 绘制子View
      *
-     * @param startingIndex
+     * @param index
      * @param child
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    private void makeAndAddView(int startingIndex, View child) {
+    private void makeAndAddView(int index, View child) {
 
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) child.getLayoutParams();
         addViewInLayout(child, 0, lp, true);
 
         final boolean needToMeasure = child.isLayoutRequested();
         if (needToMeasure) {
-            //计算 View 的长度宽度
             int childWidthSpec = getChildMeasureSpec(getWidthMeasureSpec(), getPaddingLeft() + getPaddingRight() + lp.leftMargin + lp.rightMargin, lp.width);
             int childHeightSpec = getChildMeasureSpec(getHeightMeasureSpec(), getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin, lp.height);
-            if (startingIndex > 0) {
-
-                int w = (int) (((float) startingIndex - p) * 60f);
-                int h = (int) (((float) startingIndex - p) * 30f);
-                childWidthSpec = ((childWidthSpec - w));
-                if (startingIndex < 3 || (startingIndex == 3 && p > 0.5f)) {
-                    childHeightSpec = ((childHeightSpec + h));
-                }
-            }
             child.measure(childWidthSpec, childHeightSpec);
         } else {
             cleanupLayoutState(child);
@@ -177,13 +190,10 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
 
         int w = child.getMeasuredWidth();
         int h = child.getMeasuredHeight();
-
         int gravity = lp.gravity;
         if (gravity == -1) {
             gravity = Gravity.TOP | Gravity.START;
         }
-
-
         int layoutDirection = getLayoutDirection();
         final int absoluteGravity = Gravity.getAbsoluteGravity(gravity, layoutDirection);
         final int verticalGravity = gravity & Gravity.VERTICAL_GRAVITY_MASK;
@@ -199,9 +209,7 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
                 break;
             case Gravity.START:
             default:
-                int l = (int) (((float) startingIndex - p) * 30f);
-                if (startingIndex == 0)
-                    l = 0;
+                int l = 0;
                 childLeft = getPaddingLeft() + lp.leftMargin + l;
                 break;
         }
@@ -215,11 +223,13 @@ public class SwipeFlingAdapterView extends BaseFlingAdapterView {
                 break;
             case Gravity.TOP:
             default:
-                childTop = getPaddingTop() + lp.topMargin;
+                int top = 0;
+                childTop = getPaddingTop() + lp.topMargin + top;
                 break;
         }
 
         child.layout(childLeft, childTop, childLeft + w, childTop + h);
+        adjustChildView(child, index);
     }
 
 
